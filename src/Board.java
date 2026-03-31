@@ -74,21 +74,23 @@ public class Board {
             }
         }
 
-        // TODO: If you want vertical matching too, add checks for
-        //       top neighbor (row-1) and bottom neighbor (row+1).
-        //       You'll need to decide which value faces up vs down.
-        //       For simplicity, you can start with horizontal-only matching.
+        // TODO (@Member A): Implement vertical matching.
+        // Currently only horizontal matching is enforced. To support vertical:
+        //   - Decide which value faces up vs down (e.g. left=top, right=bottom)
+        //   - Check top neighbor: our "top" value must match neighbor's "bottom" value
+        //   - Check bottom neighbor: our "bottom" value must match neighbor's "top" value
+        //   - Return false if adjacent but mismatched (same pattern as horizontal above)
 
         // Check top neighbor
         if (row > 0 && grid[row - 1][col] != null) {
-            // For vertical adjacency, decide on a convention:
-            // e.g. top neighbor's "bottom-facing" value matches our "top-facing" value
-            // For now, just require adjacency without directional match:
+            // TODO (@Member A): Add directional match check here
+            // e.g. if (d.getLeft() == grid[row - 1][col].getRight()) ...
             hasAdjacentMatch = true;
         }
 
         // Check bottom neighbor
         if (row < rows - 1 && grid[row + 1][col] != null) {
+            // TODO (@Member A): Add directional match check here
             hasAdjacentMatch = true;
         }
 
@@ -131,7 +133,9 @@ public class Board {
             }
         }
 
-        // TODO: add vertical match points if supporting vertical adjacency
+        // TODO (@Member A): Add vertical match points here once vertical
+        //   matching is implemented in isValidPlacement(). Same pattern:
+        //   check top/bottom neighbors and add matched values to points.
 
         // Minimum 1 point for any valid placement (optional design choice)
         if (points == 0 && tilesPlaced == 1) {

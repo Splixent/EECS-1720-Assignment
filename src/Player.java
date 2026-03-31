@@ -65,9 +65,9 @@ public class Player {
      * @return true if at least one valid move exists
      */
     public boolean hasPlayableTile(Board board) {
-        // TODO: loop through hand, for each domino check if the board
-        //       has any empty cell where it could be validly placed.
-        //       Return true as soon as one valid placement is found.
+        // TODO (@Member A): Verify this works correctly once vertical matching
+        //   is added to Board.isValidPlacement(). Test with edge cases:
+        //   empty board, full board, hand with no matching tiles.
         for (Domino d : hand) {
             if (board.hasValidMoveForDomino(d)) {
                 return true;

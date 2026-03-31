@@ -115,6 +115,9 @@ public class DominoMatchGUI extends JFrame {
         panel.add(Box.createRigidArea(new Dimension(0, 40)));
 
         // Play button
+        // TODO (@Member B): Add a player count selector before this button
+        //   (e.g. a JComboBox or radio buttons for 2, 3, or 4 players)
+        //   and pass the selected count to startNewGame() instead of hardcoding 2.
         JButton playBtn = createMenuButton("PLAY GAME", new Color(27, 58, 75));
         playBtn.addActionListener(e -> startNewGame(2)); // default 2 players
         panel.add(playBtn);
@@ -140,7 +143,12 @@ public class DominoMatchGUI extends JFrame {
         // Save/Load button
         JButton saveBtn = createMenuButton("SAVE / LOAD", new Color(100, 100, 110));
         saveBtn.addActionListener(e -> {
-            // TODO: implement save/load functionality
+            // TODO (@Member A): Implement save/load.
+            //   Save: serialize the Game object (or write fields to a text file)
+            //         using JFileChooser to let the user pick a save location.
+            //   Load: read the file back and reconstruct the Game object,
+            //         then call startNewGame() or refresh the screen.
+            // TODO (@Member B): Wire up JFileChooser dialogs here for save/load UI.
             JOptionPane.showMessageDialog(this,
                 "Save/Load not yet implemented.",
                 "Save / Load", JOptionPane.INFORMATION_MESSAGE);
@@ -322,8 +330,14 @@ public class DominoMatchGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String choice = (String) settingsBox.getSelectedItem();
-                // TODO: change the highlight color used for valid placement cells
-                //       based on the selected option. Then refresh the board.
+                // TODO (@Member B): Store the selected highlight color in a field
+                //   (e.g. private Color highlightColor = new Color(200, 230, 200);)
+                //   and update it here based on choice:
+                //     "Green"  -> new Color(200, 230, 200)
+                //     "Blue"   -> new Color(200, 210, 240)
+                //     "Yellow" -> new Color(245, 240, 200)
+                //     "None"   -> new Color(245, 245, 240)  (same as empty cell)
+                //   Then use that field in mouseEntered() instead of the hardcoded green.
                 refreshBoardPanel();
                 requestFocusInWindow();
             }

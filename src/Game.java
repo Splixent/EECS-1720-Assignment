@@ -81,7 +81,8 @@ public class Game {
         // Clear player hands and scores
         for (Player p : players) {
             p.getHand().clear();
-            // Note: if you want to reset score, add a resetScore() method to Player
+            // TODO (@Member A): Add a resetScore() method to Player and call it here
+            //   so scores reset when starting a new game.
         }
 
         // Re-generate and shuffle tiles
