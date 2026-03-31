@@ -1,0 +1,261 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{parskip}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\title{\textbf{Domino Match} \\ \large EECS 1720 -- W2026 Assignment Design Document}
+\author{Group \rule{2cm}{0.4pt}}
+\date{March 30, 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Game Overview}
+
+Domino Match is a tile-matching game based on a standard double-six domino set (28 tiles). Players take turns placing dominoes onto a shared board grid. A domino can only be placed if one of its sides matches the number on an adjacent tile already on the board. Matching tiles earn the player points. The game ends when no more valid moves can be made or a player runs out of tiles.
+
+We do not need a fully complete or balanced game. The goal is to demonstrate working mechanics: players, turns, domino placement, point scoring, and a functional GUI with event handling.
+
+\subsection{Core Rules (Simplified)}
+
+\begin{enumerate}
+  \item The 28 domino tiles are shuffled. Each player draws an initial hand (e.g.\ 7 tiles for 2 players).
+  \item Players take turns placing one domino onto the board.
+  \item A domino may only be placed next to an existing tile if the touching sides have matching numbers.
+  \item When a valid match is made, the player earns points equal to the sum of the matched numbers.
+  \item If a player cannot place any domino, they may draw from the remaining pile or pass.
+  \item The game ends when a player places all their tiles, or no player can make a valid move.
+  \item The player with the highest score wins. If tied, lowest remaining tile total wins.
+\end{enumerate}
+
+\subsection{The Domino Set}
+
+A standard double-six set contains 28 tiles. Each tile has two halves, each showing 0 to 6 pips (dots). The combinations are: (0$|$0), (0$|$1), (0$|$2), \ldots, (0$|$6), (1$|$1), (1$|$2), \ldots, up to (6$|$6). Tiles where both sides are the same number (e.g.\ 3$|$3) are called doubles.
+
+% ============================================================
+\section{Class Design}
+
+The application uses 4 core classes with HAS-A relationships between them.
+
+% ---- DOMINO ----
+\subsection{Domino}
+
+Represents a single domino tile with two numbered sides.
+
+\textbf{Fields:}
+\begin{itemize}[nosep]
+  \item \texttt{int leftValue} -- pip count on the left side (0--6)
+  \item \texttt{int rightValue} -- pip count on the right side (0--6)
+  \item \texttt{boolean isFlipped} -- whether the tile has been flipped (sides swapped)
+\end{itemize}
+
+\textbf{Constructor:}
+\begin{itemize}[nosep]
+  \item \texttt{Domino(int left, int right)} -- creates a tile with the given values
+\end{itemize}
+
+\textbf{Methods:}
+\begin{itemize}[nosep]
+  \item \texttt{void flip()} -- swaps left and right values so the tile can be placed in either direction
+  \item \texttt{int getLeft()} / \texttt{int getRight()} -- returns current left or right value
+  \item \texttt{int getTotal()} -- returns leftValue + rightValue (used for scoring and tiebreaks)
+  \item \texttt{boolean isDouble()} -- returns true if both sides are equal
+  \item \texttt{boolean matches(int value)} -- returns true if either side equals the given number
+  \item \texttt{String toString()} -- returns a string like ``[3|5]'' for console output
+\end{itemize}
+
+% ---- PLAYER ----
+\subsection{Player}
+
+Represents a player, their hand of dominoes, and their score.
+
+\textbf{Fields:}
+\begin{itemize}[nosep]
+  \item \texttt{String name} -- player display name
+  \item \texttt{int playerNumber} -- distinguishes players (1, 2, etc.)
+  \item \texttt{ArrayList<Domino> hand} -- the dominoes currently held by this player
+  \item \texttt{int score} -- accumulated points
+\end{itemize}
+
+\textbf{Constructor:}
+\begin{itemize}[nosep]
+  \item \texttt{Player(String name, int num)} -- creates a player with an empty hand and 0 score
+\end{itemize}
+
+\textbf{Methods:}
+\begin{itemize}[nosep]
+  \item \texttt{void addToHand(Domino d)} -- adds a domino to the player's hand
+  \item \texttt{Domino removeFromHand(int i)} -- removes and returns the domino at index i
+  \item \texttt{int getHandSize()} -- returns the number of dominoes in hand
+  \item \texttt{boolean hasPlayableTile(Board b)} -- checks if any tile in hand can be placed on the board
+  \item \texttt{void addScore(int pts)} -- adds points to the player's score
+  \item \texttt{int getScore()} -- returns current score
+  \item \texttt{int getRemainingTotal()} -- sum of all tiles left in hand (for end-game tiebreak)
+  \item \texttt{String toString()} -- outputs name, score, and hand contents
+\end{itemize}
+
+% ---- BOARD ----
+\subsection{Board}
+
+Represents the play surface as a 2D grid where dominoes are placed.
+
+\textbf{Fields:}
+\begin{itemize}[nosep]
+  \item \texttt{Domino[][] grid} -- 2D array representing the board (e.g.\ 10x10)
+  \item \texttt{int rows, cols} -- grid dimensions
+  \item \texttt{int tilesPlaced} -- count of dominoes currently on the board
+\end{itemize}
+
+\textbf{Constructor:}
+\begin{itemize}[nosep]
+  \item \texttt{Board(int rows, int cols)} -- creates an empty grid of the specified size
+\end{itemize}
+
+\textbf{Methods:}
+\begin{itemize}[nosep]
+  \item \texttt{boolean isValidPlacement(Domino d, int r, int c)} -- checks if the domino can be legally placed at position (r,c); at least one adjacent side must match
+  \item \texttt{boolean placeDomino(Domino d, int r, int c)} -- places the domino if valid, returns true/false
+  \item \texttt{int calculatePoints(Domino d, int r, int c)} -- returns points earned for a placement
+  \item \texttt{Domino getDominoAt(int r, int c)} -- returns the domino at a given position, or null if empty
+  \item \texttt{boolean isFull()} -- returns true if no empty adjacent cells remain
+  \item \texttt{boolean hasValidMove(Player p)} -- checks if the given player has any legal placement
+  \item \texttt{String toString()} -- prints the board grid to console
+\end{itemize}
+
+% ---- GAME ----
+\subsection{Game}
+
+Controls game flow: initialization, turns, win detection, and coordination of all other objects.
+
+\textbf{Fields:}
+\begin{itemize}[nosep]
+  \item \texttt{String id} -- randomly generated game ID
+  \item \texttt{ArrayList<Player> players} -- list of all players
+  \item \texttt{int currentPlayerIndex} -- index of the player whose turn it is
+  \item \texttt{Board board} -- the shared game board
+  \item \texttt{ArrayList<Domino> drawPile} -- remaining undrawn tiles
+  \item \texttt{boolean gameOver} -- whether the game has ended
+\end{itemize}
+
+\textbf{Constructor:}
+\begin{itemize}[nosep]
+  \item \texttt{Game(int numPlayers)} -- creates game, generates all 28 tiles, shuffles, deals hands
+\end{itemize}
+
+\textbf{Methods:}
+\begin{itemize}[nosep]
+  \item \texttt{void startGame()} -- shuffles tiles, deals hands, sets first player
+  \item \texttt{void endGame()} -- sets gameOver flag, calculates final scores
+  \item \texttt{void switchTurn()} -- advances currentPlayerIndex to the next player
+  \item \texttt{Player getCurrentPlayer()} -- returns the player whose turn it is
+  \item \texttt{void drawTile(Player p)} -- gives a tile from the draw pile to the player
+  \item \texttt{boolean checkGameOver()} -- returns true if no player can move and pile is empty
+  \item \texttt{Player checkWinner()} -- returns the player with the highest score
+  \item \texttt{void generateAllTiles()} -- creates all 28 domino tiles (0,0) through (6,6)
+  \item \texttt{void dealHands(int tilesPerPlayer)} -- distributes tiles to each player
+\end{itemize}
+
+% ============================================================
+\section{Relationships Between Classes}
+
+All relationships are HAS-A:
+
+\begin{itemize}[nosep]
+  \item \textbf{Game} HAS-A \textbf{Board} -- one board per game (composition)
+  \item \textbf{Game} HAS-A \textbf{Player} list -- 2 or more players per game
+  \item \textbf{Game} HAS-A \textbf{Domino} list -- the draw pile of remaining tiles
+  \item \textbf{Player} HAS-A \textbf{Domino} list -- the player's hand
+  \item \textbf{Board} HAS-A \textbf{Domino} 2D array -- the placed tiles on the grid
+\end{itemize}
+
+% ============================================================
+\section{GUI Design}
+
+The GUI will be built with Java Swing.
+
+\subsection{Start Screen}
+
+A simple title screen with three buttons:
+
+\begin{itemize}[nosep]
+  \item \textbf{Play Game} -- starts a new game and transitions to the game screen
+  \item \textbf{How to Play} -- opens a dialog or panel explaining the rules
+  \item \textbf{Save / Load} -- lets the player save the current game or load a previous one
+\end{itemize}
+
+\subsection{Game Screen}
+
+The game screen has four regions:
+
+\begin{itemize}[nosep]
+  \item \textbf{Top bar} -- displays player names, scores, and whose turn it is (JLabels in a JPanel)
+  \item \textbf{Board area} (center) -- a grid of cells using GridLayout; each cell is a JPanel that either shows a placed domino or is empty. Valid placement targets highlight when a domino is selected.
+  \item \textbf{Control panel} (right side) -- contains the Draw Tile button (JButton), Pass Turn button (JButton), Flip Domino button (JButton), and a settings dropdown (JComboBox). Also shows the draw pile count.
+  \item \textbf{Player hand} (bottom) -- displays the current player's domino tiles in a row. Tiles are drawn programmatically using paintComponent (no image files needed). Clicking or pressing a number key selects a tile.
+\end{itemize}
+
+\subsection{Domino Rendering}
+
+Rather than creating 28 separate image files, each domino is drawn programmatically by overriding \texttt{paintComponent()} in a custom JPanel. The method draws a dark rounded rectangle for the tile body, a white dividing line in the middle, and white circles (pips) in standard positions for each number 0 through 6. This makes flipping and resizing trivial.
+
+% ============================================================
+\section{Event Handling}
+
+The assignment requires 4 events: 2 action-based (from different UI control types) and 2 key/mouse-based (at least one of each).
+
+\subsection{Action Event 1: JButton -- Draw Tile}
+
+The ``Draw Tile'' button in the control panel uses an ActionListener. When clicked, \texttt{Game.drawTile(currentPlayer)} moves a domino from the draw pile to the player's hand. The hand panel repaints to show the new tile and the draw pile counter updates.
+
+\subsection{Action Event 2: JComboBox -- Game Setting}
+
+A JComboBox dropdown in the control panel (e.g.\ number of players, highlight style, or animation speed) uses an ActionListener/ItemListener. When the selection changes, the game state or display updates accordingly. This satisfies the ``different control type'' requirement since JButton and JComboBox are different controls.
+
+\subsection{Mouse Event: Click on Board to Place Domino}
+
+The board panel has a MouseListener. When the player clicks a cell on the board grid, the handler converts pixel coordinates to a grid row and column, checks validity with \texttt{Board.isValidPlacement()}, and either places the domino (updating the board, awarding points, switching turns) or rejects the move with visual feedback.
+
+\subsection{Key Event: Number Keys to Select Domino}
+
+The JFrame has a KeyListener. Pressing a number key (1--7) selects the corresponding domino in the player's hand, highlighting it. Pressing F flips the selected domino. Pressing Escape deselects. The selected domino is then placed by clicking a board cell (the mouse event above).
+
+\subsection{Event Summary}
+
+\begin{enumerate}[nosep]
+  \item \textbf{Action 1} -- JButton: draw a tile from the pile
+  \item \textbf{Action 2} -- JComboBox: change a game setting (different control type)
+  \item \textbf{Mouse} -- click on board cell to place a domino
+  \item \textbf{Key} -- number keys to select/flip domino in hand
+\end{enumerate}
+
+% ============================================================
+\section{End Game Condition}
+
+The game ends when:
+\begin{itemize}[nosep]
+  \item A player places all their tiles (that player wins), or
+  \item No player can make a valid move and the draw pile is empty
+  \item In the second case, the player with the highest score wins; ties broken by lowest remaining tile total
+\end{itemize}
+
+% ============================================================
+\section{Open Questions}
+
+\begin{enumerate}
+  \item \textbf{Board size} -- How large should the grid be? 10x10 gives room for all 28 tiles but a smaller grid could make games faster.
+  \item \textbf{Domino orientation} -- Should tiles only go horizontally, or also vertically? Horizontal-only simplifies the matching logic.
+  \item \textbf{Save/Load} -- How far do we implement this? Could use Java Serializable or a simple text file format.
+  \item \textbf{Scoring details} -- Points equal to the sum of matched numbers, or flat points per match?
+\end{enumerate}
+
+\end{document}
