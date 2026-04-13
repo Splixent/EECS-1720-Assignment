@@ -10,6 +10,7 @@ public class DominoPanel extends JPanel {
     private Domino domino;
     private boolean selected;
     private boolean faceUp;
+    private boolean vertical; // false = horizontal (left|right), true = vertical (top/bottom)
 
     // Pip positions for each value (0-6) as {x, y} pairs
     // Coordinates are relative to the center of one half, scaled 0.0 to 1.0
@@ -34,8 +35,18 @@ public class DominoPanel extends JPanel {
         this.domino = domino;
         this.selected = false;
         this.faceUp = true;
+        this.vertical = false;
         setPreferredSize(new Dimension(80, 40));
         setOpaque(false);
+    }
+
+    public void setVertical(boolean vertical) {
+        this.vertical = vertical;
+        repaint();
+    }
+
+    public boolean isVertical() {
+        return vertical;
     }
 
     public void setDomino(Domino domino) {
@@ -69,15 +80,28 @@ public class DominoPanel extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int w = getWidth();
-        int h = getHeight();
+        int panelW = getWidth();
+        int panelH = getHeight();
+
+        // Compute the aspect-correct drawing rectangle inside the panel.
+        // Horizontal: width = 2 * height. Vertical: height = 2 * width.
+        int drawW, drawH;
+        if (vertical) {
+            drawH = Math.min(panelH, panelW * 2);
+            drawW = drawH / 2;
+        } else {
+            drawW = Math.min(panelW, panelH * 2);
+            drawH = drawW / 2;
+        }
+        int x = (panelW - drawW) / 2;
+        int y = (panelH - drawH) / 2;
         int padding = 2;
 
-        // Selection highlight border
+        // Selection highlight border (around the actual tile rectangle)
         if (selected) {
             g2.setColor(SELECTED_BORDER);
             g2.setStroke(new BasicStroke(3));
-            g2.drawRoundRect(0, 0, w - 1, h - 1, 8, 8);
+            g2.drawRoundRect(x, y, drawW - 1, drawH - 1, 8, 8);
             padding = 4;
         }
 
@@ -87,28 +111,39 @@ public class DominoPanel extends JPanel {
         } else {
             g2.setColor(FACE_DOWN_COLOR);
         }
-        g2.fillRoundRect(padding, padding, w - padding * 2, h - padding * 2, 6, 6);
+        g2.fillRoundRect(x + padding, y + padding,
+                         drawW - padding * 2, drawH - padding * 2, 6, 6);
 
         if (!faceUp) {
-            // Draw a simple pattern for face-down
             g2.setColor(new Color(80, 80, 100));
-            g2.drawRoundRect(padding + 4, padding + 4,
-                             w - padding * 2 - 8, h - padding * 2 - 8, 4, 4);
+            g2.drawRoundRect(x + padding + 4, y + padding + 4,
+                             drawW - padding * 2 - 8, drawH - padding * 2 - 8, 4, 4);
             g2.dispose();
             return;
         }
 
-        // Divider line down the middle
-        int midX = w / 2;
         g2.setColor(DIVIDER_COLOR);
         g2.setStroke(new BasicStroke(2));
-        g2.drawLine(midX, padding + 3, midX, h - padding - 3);
 
-        // Draw pips on left half
-        drawPips(g2, domino.getLeft(), padding, padding, midX - padding, h - padding * 2);
-
-        // Draw pips on right half
-        drawPips(g2, domino.getRight(), midX, padding, w - padding - midX, h - padding * 2);
+        if (vertical) {
+            int midY = y + drawH / 2;
+            g2.drawLine(x + padding + 3, midY, x + drawW - padding - 3, midY);
+            drawPips(g2, domino.getLeft(),
+                     x + padding, y + padding,
+                     drawW - padding * 2, midY - y - padding);
+            drawPips(g2, domino.getRight(),
+                     x + padding, midY,
+                     drawW - padding * 2, y + drawH - padding - midY);
+        } else {
+            int midX = x + drawW / 2;
+            g2.drawLine(midX, y + padding + 3, midX, y + drawH - padding - 3);
+            drawPips(g2, domino.getLeft(),
+                     x + padding, y + padding,
+                     midX - x - padding, drawH - padding * 2);
+            drawPips(g2, domino.getRight(),
+                     midX, y + padding,
+                     x + drawW - padding - midX, drawH - padding * 2);
+        }
 
         g2.dispose();
     }

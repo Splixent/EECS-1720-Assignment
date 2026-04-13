@@ -1,9 +1,12 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Represents a player with a hand of dominoes and a score.
  */
-public class Player {
+public class Player implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String name;
     private int playerNumber;
@@ -65,9 +68,6 @@ public class Player {
      * @return true if at least one valid move exists
      */
     public boolean hasPlayableTile(Board board) {
-        // TODO (@Member A): Verify this works correctly once vertical matching
-        //   is added to Board.isValidPlacement(). Test with edge cases:
-        //   empty board, full board, hand with no matching tiles.
         for (Domino d : hand) {
             if (board.hasValidMoveForDomino(d)) {
                 return true;
@@ -78,6 +78,13 @@ public class Player {
 
     public void addScore(int pts) {
         this.score += pts;
+    }
+
+    /**
+     * Resets the player's score to zero. Called when a new game starts.
+     */
+    public void resetScore() {
+        this.score = 0;
     }
 
     public int getScore() {

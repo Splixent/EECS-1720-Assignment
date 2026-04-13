@@ -19,6 +19,10 @@ out/
 .DS_Store
 Thumbs.db
 
+# Game save files (runtime artifacts, not source)
+saves/
+*.dat
+
 # LaTeX auxiliary files
 *.aux
 *.log

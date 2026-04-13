@@ -1,7 +1,11 @@
+import java.io.Serializable;
+
 /**
  * Represents a single domino tile with two numbered sides (0-6).
  */
-public class Domino {
+public class Domino implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private int leftValue;
     private int rightValue;

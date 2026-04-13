@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
@@ -6,7 +7,9 @@ import java.util.UUID;
  * Controls game flow: initialization, turns, scoring, and win detection.
  * Coordinates Domino, Player, and Board objects.
  */
-public class Game {
+public class Game implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private String id;
     private ArrayList<Player> players;
@@ -81,8 +84,7 @@ public class Game {
         // Clear player hands and scores
         for (Player p : players) {
             p.getHand().clear();
-            // TODO (@Member A): Add a resetScore() method to Player and call it here
-            //   so scores reset when starting a new game.
+            p.resetScore();
         }
 
         // Re-generate and shuffle tiles

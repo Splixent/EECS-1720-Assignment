@@ -11,21 +11,21 @@
 
 ### Board.java
 
-- [ ] Finish vertical matching logic in `isValidPlacement()` - decide which domino value faces up vs down (line ~77)
-- [ ] Add vertical match points in `calculatePoints()` (line ~134)
-- [ ] Test edge cases: placing on board edges, double tiles, full board detection
+- [X] Finish vertical matching logic in `isValidPlacement()` (left = top face, right = bottom face)
+- [X] Add vertical match points in `calculatePoints()`
+- [X] Test edge cases: placing on board edges, double tiles, full board detection
 
 ### Game.java
 
-- [ ] Add `resetScore()` method to Player and call it in `startGame()` (line ~84)
-- [ ] Implement save/load: serialize game state to a file and load it back (see `DominoMatchGUI.java` line ~142 for the button hook)
-- [ ] Test `checkGameOver()` - make sure it correctly detects when no moves remain
-- [ ] Test `checkWinner()` - verify tiebreak logic works
+- [X] Add `resetScore()` method to Player and call it in `startGame()`
+- [X] Implement save/load: multi-slot Java serialization in `SaveManager.java`
+- [X] Test `checkGameOver()` - make sure it correctly detects when no moves remain
+- [X] Test `checkWinner()` - verify tiebreak logic works
 
 ### Player.java
 
-- [ ] Verify `hasPlayableTile()` works correctly with flipped orientations
-- [ ] Consider adding a `canPass()` method (only allow pass when no valid moves exist)
+- [X] Verify `hasPlayableTile()` works correctly with flipped orientations
+- [X] Consider adding a `canPass()` method (only allow pass when no valid moves exist)
 
 
 ---
@@ -34,14 +34,27 @@
 
 ### DominoMatchGUI.java
 
-- [ ] Implement the highlight color change from the JComboBox dropdown (line ~325) - store the selected color and use it in `mouseEntered` (line ~401)
-- [ ] Implement save/load dialogs: file chooser for save location, load from file (line ~142)
-- [ ] Improve the start screen: add a player count selector (2, 3, or 4 players) before starting
-- [ ] Add a "Play Again" button on the game over dialog instead of just OK
+- [X] Implement the highlight color change from the JComboBox dropdown
+- [X] Wire up save/load: auto-save on Main Menu / window close, Load Game button on start screen, auto-delete on game end
+- [X] Improve the start screen: add a player count selector (2, 3, or 4 players) before starting
+- [X] Add a "Play Again" button on the game over dialog instead of just OK
 - [ ] Style the game over screen better (show final board state, scores)
+
+### Quick tweaks (each one is a 2-3 line edit at the top of `DominoMatchGUI.java`)
+
+All of these constants live in the **THEME CONSTANTS** block at the top of the file - just change the number/color literal:
+
+- [ ] Resize the window: change `WINDOW_WIDTH` / `WINDOW_HEIGHT`
+- [ ] Recolor the screen background: change `BG_COLOR`
+- [ ] Recolor the top bar / title / board border: change `ACCENT_COLOR`
+- [ ] Recolor empty board cells: change `EMPTY_CELL_COLOR`
+- [ ] Recolor the invalid-move red flash: change `INVALID_FLASH_COLOR`
+- [ ] Recolor the default cell hover highlight: change `DEFAULT_HIGHLIGHT`
+- [ ] Tweak the four named highlight colors (Green/Blue/Yellow/None) - they're in the `switch` block inside the JComboBox listener
 
 ### DominoPanel.java
 
+- [X] Vertical rendering for stacked dominoes (`setVertical()` flag, divider rotates)
 - [ ] Tweak pip sizes and positions if they look off at different panel sizes
 - [ ] Consider adding a hover effect when mousing over tiles in the hand
 - [ ] Add a visual indicator for double tiles (optional, e.g. slightly different background)
@@ -49,7 +62,7 @@
 ### General GUI
 
 - [ ] Test that key events still work after clicking buttons (focus issues)
-- [ ] Make sure the board cells resize properly if window size changes
+- [ ] Make the board cells resize properly if window size changes (currently `setResizable(false)` - flip to true and test)
 - [ ] Add sound effects on placement / invalid move (optional stretch goal)
 
 ---

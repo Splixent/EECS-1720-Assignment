@@ -1,3 +1,5 @@
+import java.io.Serializable;
+
 /**
  * Represents the game board as a 2D grid where dominoes are placed.
  * Each cell in the grid either holds a Domino or is null (empty).
@@ -6,7 +8,9 @@
  * and the right value faces the cell to its right. When checking matches,
  * we compare the touching edges of adjacent dominoes.
  */
-public class Board {
+public class Board implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private Domino[][] grid;
     private int rows;
@@ -40,61 +44,74 @@ public class Board {
      * @return true if placement is valid
      */
     public boolean isValidPlacement(Domino d, int row, int col) {
-        // Cell must be in bounds and empty
+        return getInvalidReason(d, row, col) == null;
+    }
+
+    /**
+     * Returns null if the placement is legal, or a short human-readable
+     * reason if it isn't. Used by the GUI to explain why a click failed.
+     *
+     * Vertical matching convention: left = top face, right = bottom face.
+     */
+    public String getInvalidReason(Domino d, int row, int col) {
         if (row < 0 || row >= rows || col < 0 || col >= cols) {
-            return false;
+            return "Out of bounds";
         }
         if (grid[row][col] != null) {
-            return false;
+            return "That cell is already taken";
         }
 
-        // First tile on the board: always valid
+        // First tile on the board is always valid
         if (tilesPlaced == 0) {
-            return true;
+            return null;
         }
 
-        // Must be adjacent to at least one existing tile with a matching edge
         boolean hasAdjacentMatch = false;
 
-        // Check left neighbor: our left value must match neighbor's right value
+        // Left neighbor: our left value must match neighbor's right value
         if (col > 0 && grid[row][col - 1] != null) {
             if (d.getLeft() == grid[row][col - 1].getRight()) {
                 hasAdjacentMatch = true;
             } else {
-                return false; // adjacent but doesn't match = invalid
+                return "Left side (" + d.getLeft() + ") doesn't match neighbor ("
+                    + grid[row][col - 1].getRight() + ")";
             }
         }
 
-        // Check right neighbor: our right value must match neighbor's left value
+        // Right neighbor: our right value must match neighbor's left value
         if (col < cols - 1 && grid[row][col + 1] != null) {
             if (d.getRight() == grid[row][col + 1].getLeft()) {
                 hasAdjacentMatch = true;
             } else {
-                return false;
+                return "Right side (" + d.getRight() + ") doesn't match neighbor ("
+                    + grid[row][col + 1].getLeft() + ")";
             }
         }
 
-        // TODO (@Member A): Implement vertical matching.
-        // Currently only horizontal matching is enforced. To support vertical:
-        //   - Decide which value faces up vs down (e.g. left=top, right=bottom)
-        //   - Check top neighbor: our "top" value must match neighbor's "bottom" value
-        //   - Check bottom neighbor: our "bottom" value must match neighbor's "top" value
-        //   - Return false if adjacent but mismatched (same pattern as horizontal above)
-
-        // Check top neighbor
+        // Top neighbor: our top (left) must match neighbor's bottom (right)
         if (row > 0 && grid[row - 1][col] != null) {
-            // TODO (@Member A): Add directional match check here
-            // e.g. if (d.getLeft() == grid[row - 1][col].getRight()) ...
-            hasAdjacentMatch = true;
+            if (d.getLeft() == grid[row - 1][col].getRight()) {
+                hasAdjacentMatch = true;
+            } else {
+                return "Top side (" + d.getLeft() + ") doesn't match neighbor ("
+                    + grid[row - 1][col].getRight() + ")";
+            }
         }
 
-        // Check bottom neighbor
+        // Bottom neighbor: our bottom (right) must match neighbor's top (left)
         if (row < rows - 1 && grid[row + 1][col] != null) {
-            // TODO (@Member A): Add directional match check here
-            hasAdjacentMatch = true;
+            if (d.getRight() == grid[row + 1][col].getLeft()) {
+                hasAdjacentMatch = true;
+            } else {
+                return "Bottom side (" + d.getRight() + ") doesn't match neighbor ("
+                    + grid[row + 1][col].getLeft() + ")";
+            }
         }
 
-        return hasAdjacentMatch;
+        if (!hasAdjacentMatch) {
+            return "Tile must touch an existing tile";
+        }
+        return null;
     }
 
     /**
@@ -133,9 +150,19 @@ public class Board {
             }
         }
 
-        // TODO (@Member A): Add vertical match points here once vertical
-        //   matching is implemented in isValidPlacement(). Same pattern:
-        //   check top/bottom neighbors and add matched values to points.
+        // Top neighbor match (left = top face)
+        if (row > 0 && grid[row - 1][col] != null) {
+            if (d.getLeft() == grid[row - 1][col].getRight()) {
+                points += d.getLeft();
+            }
+        }
+
+        // Bottom neighbor match (right = bottom face)
+        if (row < rows - 1 && grid[row + 1][col] != null) {
+            if (d.getRight() == grid[row + 1][col].getLeft()) {
+                points += d.getRight();
+            }
+        }
 
         // Minimum 1 point for any valid placement (optional design choice)
         if (points == 0 && tilesPlaced == 1) {
